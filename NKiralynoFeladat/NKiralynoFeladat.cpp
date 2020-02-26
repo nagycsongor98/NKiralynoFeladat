@@ -30,7 +30,7 @@ bool goodPosition(int** board, int n, int row, int col)
 	return true;
 }
 
-bool placingTheQueens(int** board, int n, int col)
+bool placingTheQueens(int** board, int n, int col, int &solution)
 {
 	if (col >= n) {
 		return true;
@@ -39,12 +39,14 @@ bool placingTheQueens(int** board, int n, int col)
 	for (int i = 0; i < n; i++) {
 		if (goodPosition(board, n, i, col)) {
 			board[i][col] = 1;
+			solution++;
 
-			if (placingTheQueens(board, n, col + 1)) {
+			if (placingTheQueens(board, n, col + 1, solution)) {
 				return true;
 			}
 
 			board[i][col] = 0;
+			solution++;
 		}
 	}
 	return false;
@@ -52,7 +54,7 @@ bool placingTheQueens(int** board, int n, int col)
 
 void forwardChecking(int** forwardCheckingBoard, int* freePosition, int n, int row, int col) {
 	int i, j;
-	for (i = col; i < n; i++) {
+	for (i = 0; i < n; i++) {
 		if (forwardCheckingBoard[row][i] == 0) {
 			freePosition[i]--;
 		}
@@ -66,7 +68,21 @@ void forwardChecking(int** forwardCheckingBoard, int* freePosition, int n, int r
 		forwardCheckingBoard[i][j]++;
 	}
 
+	for (i = row-1, j = col-1; i < n && j >= 0; i++, j--) {
+		if (forwardCheckingBoard[i][j] == 0) {
+			freePosition[j]--;
+		}
+		forwardCheckingBoard[i][j]++;
+	}
+
 	for (i = row, j = col; i < n && j < n; i++, j++) {
+		if (forwardCheckingBoard[i][j] == 0) {
+			freePosition[j]--;
+		}
+		forwardCheckingBoard[i][j]++;
+	}
+
+	for (i = row-1, j = col-1; i >= 0 && j >= 0; i--, j--) {
 		if (forwardCheckingBoard[i][j] == 0) {
 			freePosition[j]--;
 		}
@@ -76,7 +92,7 @@ void forwardChecking(int** forwardCheckingBoard, int* freePosition, int n, int r
 
 void forwardCheckingBack(int** forwardCheckingBoard, int* freePosition, int n, int row, int col) {
 	int i, j;
-	for (i = col; i < n; i++) {
+	for (i = 0; i < n; i++) {
 		forwardCheckingBoard[row][i]--;
 		if (forwardCheckingBoard[row][i] == 0) {
 			freePosition[i]++;
@@ -90,7 +106,22 @@ void forwardCheckingBack(int** forwardCheckingBoard, int* freePosition, int n, i
 		}
 	}
 
+	for (i = row-1, j = col-1; i < n && j >= 0; i++, j--) {
+		forwardCheckingBoard[i][j]--;
+		if (forwardCheckingBoard[i][j] == 0) {
+			freePosition[j]++;
+		}
+	}
+
+
 	for (i = row, j = col; i < n && j < n; i++, j++) {
+		forwardCheckingBoard[i][j]--;
+		if (forwardCheckingBoard[i][j] == 0) {
+			freePosition[j]++;
+		}
+	}
+
+	for (i = row-1, j = col-1; i >= 0 && j >= 0; i--, j--) {
 		forwardCheckingBoard[i][j]--;
 		if (forwardCheckingBoard[i][j] == 0) {
 			freePosition[j]++;
@@ -98,9 +129,21 @@ void forwardCheckingBack(int** forwardCheckingBoard, int* freePosition, int n, i
 	}
 }
 
-bool placingTheQueensForwardChecking(int** board, int** forwardCheckingBoard, int* freePosition, int n, int col)
+int MVR(int* freePosition, int n) {
+	int res = 0;
+	for (int i = 0; i < n; i++) {
+		if (freePosition[i] < freePosition[res]) {
+			res = i;
+		}
+	}
+	return res;
+}
+
+
+
+bool placingTheQueensForwardChecking(int** board, int** forwardCheckingBoard, int* freePosition, int n, int col, int free, int& solution)
 {
-	if (col >= n) {
+	if (free == 0) {
 		return true;
 	}
 
@@ -113,17 +156,23 @@ bool placingTheQueensForwardChecking(int** board, int** forwardCheckingBoard, in
 	for (int i = 0; i < n; i++) {
 		if (forwardCheckingBoard[i][col] == 0) {
 			board[i][col] = 1;
+			int freeP = freePosition[col];
+			freePosition[col] = n + 1;
+			solution++;
 
 			forwardChecking(forwardCheckingBoard, freePosition, n, i, col);
 			//printBoard(forwardCheckingBoard, n);
 			//cout << endl;
 			
+			int nextCol = MVR(freePosition, n);
 
-			if (placingTheQueensForwardChecking(board, forwardCheckingBoard, freePosition, n, col + 1)) {
+			if (placingTheQueensForwardChecking(board, forwardCheckingBoard, freePosition, n, nextCol,free-1, solution)) {
 				return true;
 			}
 
 			board[i][col] = 0;
+			freePosition[col] = freeP;
+			solution++;
 			forwardCheckingBack(forwardCheckingBoard, freePosition, n, i, col);
 			//cout << "back\n";
 			//printBoard(forwardCheckingBoard, n);
@@ -144,7 +193,7 @@ int main()
 	cin >> algorithm;
 	system("CLS");
 	int n;
-	cout << "Size of the tabla: ";
+	cout << "Size of the table: ";
 	cin >> n;
 	cout << endl;
 	int** board;
@@ -165,27 +214,33 @@ int main()
 		}
 	}
 
+	int solution;
 	switch (algorithm) {
 	case 1:
 		//backtracking
-		if (!placingTheQueens(board, n, 0)) {
+		solution = 0;
+		if (!placingTheQueens(board, n, 0,solution)) {
 			cout << "Solution don't exist\n";
 		}
 		else {
 			printBoard(board, n);
+			cout << "Solution :"<<solution<<endl;
 		}
 		break;
 	case 2:
 		//backtracking + MVR + forward checking
-		if (!placingTheQueensForwardChecking(board, forwardCheckingBoard, freePosition, n, 0)) {
+		solution = 0;
+		if (!placingTheQueensForwardChecking(board, forwardCheckingBoard, freePosition, n, 0, n, solution)) {
 			cout << "Solution don't exist\n";
 		}
 		else {
 			printBoard(board, n);
+			cout << "Solution :" << solution << endl;
 		}
 		break;
 	case 3:
 		//backtracking + MVR + AC-3
+		solution = 0;
 		cout << "Not implemented :)\n";
 		break;
 	default:
