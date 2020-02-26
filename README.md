@@ -19,3 +19,8 @@ Kiértékelés:
 4. N=30 értekadasok száma
     Nyers backtracking:112.859.208
     Backtracking + MVR + forward checking:30
+
+5. N=35 értekadasok száma
+    Nyers backtracking:471.099.113
+    Backtracking + MVR + forward checking:49
+
