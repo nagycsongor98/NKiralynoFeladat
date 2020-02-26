@@ -223,7 +223,7 @@ int main()
 			cout << "Solution don't exist\n";
 		}
 		else {
-			printBoard(board, n);
+			//printBoard(board, n);
 			cout << "Solution :"<<solution<<endl;
 		}
 		break;
@@ -234,7 +234,7 @@ int main()
 			cout << "Solution don't exist\n";
 		}
 		else {
-			printBoard(board, n);
+			//printBoard(board, n);
 			cout << "Solution :" << solution << endl;
 		}
 		break;
