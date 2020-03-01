@@ -68,7 +68,7 @@ void forwardChecking(int** forwardCheckingBoard, int* freePosition, int n, int r
 		forwardCheckingBoard[i][j]++;
 	}
 
-	for (i = row-1, j = col-1; i < n && j >= 0; i++, j--) {
+	for (i = row-1, j = col-1; i < n && i >= 0 && j < n && j >= 0; i++, j--) {
 		if (forwardCheckingBoard[i][j] == 0) {
 			freePosition[j]--;
 		}
@@ -82,7 +82,7 @@ void forwardChecking(int** forwardCheckingBoard, int* freePosition, int n, int r
 		forwardCheckingBoard[i][j]++;
 	}
 
-	for (i = row-1, j = col-1; i >= 0 && j >= 0; i--, j--) {
+	for (i = row-1, j = col-1; i < n && i >= 0 && j < n && j >= 0; i--, j--) {
 		if (forwardCheckingBoard[i][j] == 0) {
 			freePosition[j]--;
 		}
@@ -106,7 +106,7 @@ void forwardCheckingBack(int** forwardCheckingBoard, int* freePosition, int n, i
 		}
 	}
 
-	for (i = row-1, j = col-1; i < n && j >= 0; i++, j--) {
+	for (i = row-1, j = col-1; i < n && i >= 0 && j < n && j >= 0; i++, j--) {
 		forwardCheckingBoard[i][j]--;
 		if (forwardCheckingBoard[i][j] == 0) {
 			freePosition[j]++;
@@ -121,7 +121,7 @@ void forwardCheckingBack(int** forwardCheckingBoard, int* freePosition, int n, i
 		}
 	}
 
-	for (i = row-1, j = col-1; i >= 0 && j >= 0; i--, j--) {
+	for (i = row-1, j = col-1; i < n && i >= 0 && j < n && j >= 0; i--, j--) {
 		forwardCheckingBoard[i][j]--;
 		if (forwardCheckingBoard[i][j] == 0) {
 			freePosition[j]++;
@@ -147,12 +147,6 @@ bool placingTheQueensForwardChecking(int** board, int** forwardCheckingBoard, in
 		return true;
 	}
 
-	for (int i = col; i < n; i++) {
-		if (freePosition[i] == 0) {
-			return false;
-		}
-	}
-
 	for (int i = 0; i < n; i++) {
 		if (forwardCheckingBoard[i][col] == 0) {
 			board[i][col] = 1;
@@ -161,8 +155,6 @@ bool placingTheQueensForwardChecking(int** board, int** forwardCheckingBoard, in
 			solution++;
 
 			forwardChecking(forwardCheckingBoard, freePosition, n, i, col);
-			//printBoard(forwardCheckingBoard, n);
-			//cout << endl;
 			
 			int nextCol = MVR(freePosition, n);
 
@@ -174,13 +166,53 @@ bool placingTheQueensForwardChecking(int** board, int** forwardCheckingBoard, in
 			freePosition[col] = freeP;
 			solution++;
 			forwardCheckingBack(forwardCheckingBoard, freePosition, n, i, col);
-			//cout << "back\n";
-			//printBoard(forwardCheckingBoard, n);
-			//cout << endl;
 		}
 	}
 	return false;
 }
+
+bool ac3(int* freePosition, int n)
+{
+	for (int i = 0; i < n; i++) {
+		if (freePosition[i] == 0) {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool placingTheQueensAc3(int** board, int** forwardCheckingBoard, int* freePosition, int n, int col, int free, int& solution)
+{
+	if (free == 0) {
+		return true;
+	}
+
+	for (int i = 0; i < n; i++) {
+		if (forwardCheckingBoard[i][col] == 0) {
+			int freeP = freePosition[col];
+			freePosition[col] = n + 1;
+			forwardChecking(forwardCheckingBoard, freePosition, n, i, col);
+			if (ac3(freePosition, n)) {
+				board[i][col] = 1;
+				solution++;
+
+				int nextCol = MVR(freePosition, n);
+
+				if (placingTheQueensAc3(board, forwardCheckingBoard, freePosition, n, nextCol, free - 1, solution)) {
+					return true;
+				}
+
+				board[i][col] = 0;
+				solution++;
+			}
+			freePosition[col] = freeP;
+			forwardCheckingBack(forwardCheckingBoard, freePosition, n, i, col);
+		}
+	}
+	return false;
+}
+
+
 
 
 int main()
@@ -241,7 +273,13 @@ int main()
 	case 3:
 		//backtracking + MVR + AC-3
 		solution = 0;
-		cout << "Not implemented :)\n";
+		if (!placingTheQueensAc3(board, forwardCheckingBoard, freePosition, n, 0, n, solution)) {
+			cout << "Solution don't exist\n";
+		}
+		else {
+			//printBoard(board, n);
+			cout << "Solution :" << solution << endl;
+		}
 		break;
 	default:
 		cout << "Algorithm don't exist\n";
